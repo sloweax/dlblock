@@ -1,8 +1,8 @@
 #include "dlblock.h"
 #include <dlfcn.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define PUSH_ALL()             \
     asm volatile("push %rdi"); \
@@ -19,6 +19,8 @@
     asm volatile("pop %rdx"); \
     asm volatile("pop %rsi"); \
     asm volatile("pop %rdi")
+
+char *getenv(const char *name);
 
 static int in_block_list(char *name)
 {
@@ -73,6 +75,11 @@ return_type name()                                             \
     POP_ALL();                                                 \
     return ORIGINAL_NAME(name)();                              \
 }
+
+// stdlib.h
+HOOK(malloc, void*, ENOMEM, NULL)
+HOOK(realloc, void*, ENOMEM, NULL)
+HOOK(system, int, ENOMEM, -1)
 
 // stdio.h
 HOOK(fopen, void*, ENOMEM, NULL)
